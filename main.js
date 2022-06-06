@@ -9,51 +9,10 @@ const inputButton = document.querySelector('#inputButton');
 const listButton = document.querySelector('#listButton');
 const value = input.value;
 const list = document.querySelector('#list');
-
-const getValueInput = () => {
-	let inputValue = input.value;
-	addItem(inputValue, 'things');
-	input.value = '';
-};
-
-const printReduxValues = () => {
-	list.innerHTML = reduxStore.things.map(item => `<li>${item}</li>`);
-};
-inputButton.addEventListener('click', () => getValueInput());
-listButton.addEventListener('click', () => {
-	console.log(getState('things'));
-	printReduxValues();
-});
-
-const getState = element => reduxStore[element];
-
-const addItem = (item, element) => {
-	return (reduxStore = { ...reduxStore, [element]: [...reduxStore[element], item] });
-};
-
-// counter
 const result = document.querySelector('#result');
 const counterButtonIncrement = document.querySelector('#counterButtonIncrement');
 const counterButtonDecrement = document.querySelector('#counterButtonDecrement');
 const resetButton = document.querySelector('#resetButton');
-counterButtonIncrement.addEventListener('click', () => increment());
-counterButtonDecrement.addEventListener('click', () => decrement());
-resetButton.addEventListener('click', () => reset());
-
-const increment = () => {
-	reduxStore.result++;
-	result.innerHTML = reduxStore.result;
-};
-const decrement = () => {
-	reduxStore.result--;
-	result.innerHTML = reduxStore.result;
-};
-const reset = () => {
-	reduxStore.result = 0;
-	result.innerHTML = reduxStore.result;
-};
-
-result.innerText = reduxStore.result;
 
 const actions = {
 	increment: () => {
@@ -71,11 +30,62 @@ const actions = {
 			type: 'RESET',
 		};
 	},
-	addItem: (item, element) => {
+	addItem: payload => {
 		return {
 			type: 'ADD_ITEM',
-			item,
-			element,
+			payload,
 		};
 	},
 };
+counterButtonIncrement.addEventListener('click', () => {
+	reducer(actions.increment());
+	showResult();
+});
+counterButtonDecrement.addEventListener('click', () => {
+	reducer(actions.decrement());
+	showResult();
+});
+resetButton.addEventListener('click', () => {
+	reducer(actions.reset());
+	showResult();
+});
+inputButton.addEventListener('click', () => getValueInput());
+
+listButton.addEventListener('click', () => {
+	printReduxValues();
+});
+const reducer = action => {
+	switch (action.type) {
+		case 'INCREMENT':
+			return (reduxStore = { ...reduxStore, result: reduxStore.result + 1 });
+		case 'DECREMENT':
+			return (reduxStore = { ...reduxStore, result: reduxStore.result - 1 });
+		case 'RESET':
+			return (reduxStore = { ...reduxStore, result: 0 });
+		case 'ADD_ITEM':
+			return (reduxStore = { ...reduxStore, things: [...reduxStore.things, action.payload] });
+		default:
+			return (reduxStore = reduxStore);
+	}
+};
+
+// helper functions
+
+function getState() {
+	return reduxStore;
+}
+
+function printReduxValues() {
+	list.innerHTML = getState().things.map(item => `<li>${item}</li>`);
+}
+function showResult() {
+	result.innerHTML = getState().result;
+}
+
+function getValueInput() {
+	const inputValue = input.value;
+	reducer(actions.addItem(inputValue));
+	input.value = '';
+}
+
+showResult();
